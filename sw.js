@@ -1,11 +1,11 @@
 const CACHE_NAME = 'photocal-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/jszip.min.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/jszip.min.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', e => {

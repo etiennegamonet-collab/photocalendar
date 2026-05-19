@@ -2,7 +2,7 @@
   "name": "Photo Calendar",
   "short_name": "PhotoCal",
   "description": "Classify photos into folders based on calendar events",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#FAFAFA",
   "theme_color": "#6366F1",
