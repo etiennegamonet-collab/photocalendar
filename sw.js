@@ -1,9 +1,10 @@
-const CACHE_NAME = 'photocal-v1';
+const CACHE_NAME = 'photocal-v2';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './js/app.js',
+  './js/firebase-config.js',
   './js/jszip.min.js',
   './manifest.json'
 ];

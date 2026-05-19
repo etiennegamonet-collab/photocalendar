@@ -7,10 +7,150 @@ const STORE_EVENTS = 'pc_events';
 const STORE_CATEGORIES = 'pc_categories';
 
 function loadEvents() { try { return JSON.parse(localStorage.getItem(STORE_EVENTS)) || []; } catch { return []; } }
-function saveEvents(list) { localStorage.setItem(STORE_EVENTS, JSON.stringify(list)); }
+function saveEvents(list) { localStorage.setItem(STORE_EVENTS, JSON.stringify(list)); pushToCloud(); }
 function loadCategories() { try { return JSON.parse(localStorage.getItem(STORE_CATEGORIES)) || []; } catch { return []; } }
-function saveCategories(list) { localStorage.setItem(STORE_CATEGORIES, JSON.stringify(list)); }
+function saveCategories(list) { localStorage.setItem(STORE_CATEGORIES, JSON.stringify(list)); pushToCloud(); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ═══════════════════════════════════════════
+// FIREBASE AUTH & SYNC
+// ═══════════════════════════════════════════
+
+let currentUser = null;
+let unsubFirestore = null;
+let lastSyncJSON = '';
+
+const firebaseReady = typeof FIREBASE_CONFIG !== 'undefined' && FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY';
+
+if (firebaseReady) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        updateAuthUI();
+        if (user) startSync(); else stopSync();
+    });
+
+    function handleSignIn() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (mobile) {
+            auth.signInWithRedirect(provider);
+        } else {
+            auth.signInWithPopup(provider).catch(err => {
+                if (err.code === 'auth/popup-blocked') auth.signInWithRedirect(provider);
+            });
+        }
+    }
+
+    function handleSignOut() {
+        if (confirm('Sign out? Your events stay on this device.')) auth.signOut();
+    }
+
+    function startSync() {
+        if (!currentUser) return;
+        const docRef = db.collection('users').doc(currentUser.uid);
+
+        docRef.get().then(snap => {
+            if (!snap.exists) {
+                pushToCloud();
+            } else {
+                mergeFromCloud(snap.data());
+            }
+        }).catch(() => {});
+
+        unsubFirestore = docRef.onSnapshot(snap => {
+            if (!snap.exists || !snap.metadata.hasPendingWrites === false) return;
+            const data = snap.data();
+            const json = JSON.stringify([data.events, data.categories]);
+            if (json === lastSyncJSON) return;
+            lastSyncJSON = json;
+            if (data.events) localStorage.setItem(STORE_EVENTS, JSON.stringify(data.events));
+            if (data.categories) localStorage.setItem(STORE_CATEGORIES, JSON.stringify(data.categories));
+            refreshCurrentScreen();
+        }, () => {});
+    }
+
+    function stopSync() {
+        if (unsubFirestore) { unsubFirestore(); unsubFirestore = null; }
+        lastSyncJSON = '';
+    }
+
+    function mergeFromCloud(cloudData) {
+        const localEvts = loadEvents();
+        const localCats = loadCategories();
+        const cloudEvts = cloudData.events || [];
+        const cloudCats = cloudData.categories || [];
+
+        const evtKeys = new Set();
+        const merged = [];
+        for (const ev of [...cloudEvts, ...localEvts]) {
+            const key = `${ev.name}|${ev.startDate}|${ev.endDate}`;
+            if (!evtKeys.has(key)) { evtKeys.add(key); merged.push(ev); }
+        }
+
+        const catNames = new Set();
+        const mergedCats = [];
+        for (const cat of [...cloudCats, ...localCats]) {
+            if (!catNames.has(cat.name)) { catNames.add(cat.name); mergedCats.push(cat); }
+        }
+
+        localStorage.setItem(STORE_EVENTS, JSON.stringify(merged));
+        localStorage.setItem(STORE_CATEGORIES, JSON.stringify(mergedCats));
+        pushToCloud();
+        refreshCurrentScreen();
+    }
+}
+
+function pushToCloud() {
+    if (!firebaseReady || !currentUser) return;
+    const data = { events: loadEvents(), categories: loadCategories() };
+    lastSyncJSON = JSON.stringify([data.events, data.categories]);
+    firebase.firestore().collection('users').doc(currentUser.uid).set({
+        ...data,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(() => {});
+}
+
+function updateAuthUI() {
+    const btn = $('#header-auth');
+    const icon = $('#auth-icon-guest');
+    const avatar = $('#auth-avatar');
+    const banner = $('#sync-banner');
+    const bannerText = $('#sync-text');
+
+    if (!firebaseReady) {
+        btn.classList.add('hidden');
+        banner.classList.add('hidden');
+        return;
+    }
+
+    if (currentUser) {
+        icon.classList.add('hidden');
+        if (currentUser.photoURL) {
+            avatar.src = currentUser.photoURL;
+            avatar.classList.remove('hidden');
+        }
+        btn.classList.add('signed-in');
+        banner.classList.add('signed-in');
+        bannerText.textContent = `Synced as ${currentUser.displayName || currentUser.email}`;
+        banner.onclick = null;
+    } else {
+        icon.classList.remove('hidden');
+        avatar.classList.add('hidden');
+        btn.classList.remove('signed-in');
+        banner.classList.remove('signed-in');
+        bannerText.textContent = 'Sign in to sync across devices';
+        banner.onclick = () => handleSignIn();
+    }
+}
+
+function refreshCurrentScreen() {
+    if (currentScreen === 'calendar') renderCalendar();
+    if (currentScreen === 'categories') renderCategories();
+}
 
 // ── Helpers ──
 
@@ -889,6 +1029,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Header
     $('#header-back').addEventListener('click', goBack);
+    $('#header-auth').addEventListener('click', () => {
+        if (currentUser) handleSignOut(); else if (firebaseReady) handleSignIn();
+    });
+    updateAuthUI();
 
     // Home
     $('#go-calendar').addEventListener('click', () => showScreen('calendar'));

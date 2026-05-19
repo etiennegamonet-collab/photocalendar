@@ -20,12 +20,22 @@
     </button>
     <h1 id="header-title">Photo Calendar</h1>
     <button id="header-action" class="header-btn hidden"></button>
+    <button id="header-auth" class="header-btn auth-btn" aria-label="Account">
+        <svg id="auth-icon-guest" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        <img id="auth-avatar" class="auth-avatar hidden" alt="" referrerpolicy="no-referrer">
+    </button>
 </header>
 
 <main class="container">
 
     <!-- HOME -->
     <section id="screen-home" class="screen">
+        <div id="sync-banner" class="sync-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            <span id="sync-text">Sign in to sync across devices</span>
+        </div>
         <p class="home-greeting">What would you like to do?</p>
         <div class="home-grid">
             <button class="home-card" id="go-calendar">
@@ -218,6 +228,10 @@
     </section>
 </main>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
 <script src="js/jszip.min.js"></script>
 <script src="js/app.js"></script>
 </body>

@@ -50,6 +50,24 @@ body {
 
 .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
 
+/* Auth */
+.auth-btn { position: relative; }
+.auth-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.auth-btn.signed-in { padding: 4px; }
+
+.sync-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; margin-bottom: 16px;
+    background: var(--primary-light); color: var(--primary);
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background .15s;
+}
+.sync-banner:hover { background: #E0E7FF; }
+.sync-banner.signed-in {
+    background: #ECFDF5; color: #059669; cursor: default;
+}
+.sync-banner.signed-in:hover { background: #ECFDF5; }
+
 /* Home */
 .home-greeting { font-size: 15px; color: var(--text-secondary); font-weight: 400; }
 .home-grid { display: flex; flex-direction: column; gap: 12px; padding-top: 20px; }
