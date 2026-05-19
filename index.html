@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#6366F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PhotoCal">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="manifest" href="manifest.json">
+<title>Photo Calendar</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="app-header">
+    <button id="header-back" class="header-btn hidden" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h1 id="header-title">Photo Calendar</h1>
+    <button id="header-action" class="header-btn hidden"></button>
+</header>
+
+<main class="container">
+
+    <!-- HOME -->
+    <section id="screen-home" class="screen">
+        <p class="home-greeting">What would you like to do?</p>
+        <div class="home-grid">
+            <button class="home-card" id="go-calendar">
+                <div class="home-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2>My Calendar</h2>
+                    <p>Add and manage events</p>
+                </div>
+            </button>
+            <button class="home-card" id="go-classify">
+                <div class="home-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                        <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2>Classify Photos</h2>
+                    <p>Organize photos by events</p>
+                </div>
+            </button>
+        </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section id="screen-calendar" class="screen hidden">
+        <div class="cal-toolbar">
+            <div class="view-toggle">
+                <button class="toggle-btn active" data-view="list">List</button>
+                <button class="toggle-btn" data-view="grid">Calendar</button>
+            </div>
+            <label class="btn btn-ghost btn-sm" id="btn-import-ics">
+                Import .ics
+                <input type="file" id="ics-file-input" accept=".ics,.ICS" hidden>
+            </label>
+        </div>
+
+        <div id="cal-list-view">
+            <div id="cal-event-list"></div>
+            <div id="cal-empty" class="empty-state hidden">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".35">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    <line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/>
+                </svg>
+                <span>No events yet</span>
+                <span class="empty-hint">Tap + to add one</span>
+            </div>
+        </div>
+
+        <div id="cal-grid-view" class="hidden">
+            <div class="month-nav">
+                <button id="month-prev" class="nav-btn">&lsaquo;</button>
+                <span id="month-label"></span>
+                <button id="month-next" class="nav-btn">&rsaquo;</button>
+            </div>
+            <div class="cal-weekdays">
+                <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+            </div>
+            <div id="cal-days" class="cal-days"></div>
+            <div id="day-events" class="day-events-panel hidden"></div>
+        </div>
+    </section>
+
+    <!-- EVENT FORM -->
+    <section id="screen-event-form" class="screen hidden">
+        <div class="card">
+            <div class="form-group">
+                <label for="ev-name">Event name</label>
+                <input type="text" id="ev-name" placeholder="e.g., Holidays at Cavalaire">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ev-start">Start</label>
+                    <input type="date" id="ev-start">
+                </div>
+                <div class="form-group">
+                    <label for="ev-end">End</label>
+                    <input type="date" id="ev-end">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="ev-category">Category</label>
+                <div class="cat-select-row">
+                    <select id="ev-category"></select>
+                    <button type="button" id="go-categories" class="btn-link">Manage</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button id="ev-delete" class="btn btn-ghost btn-danger hidden">Delete</button>
+                <button id="ev-save" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="screen-categories" class="screen hidden">
+        <div id="cat-list"></div>
+        <div class="card" style="margin-top:16px">
+            <h3 class="card-section-title">New category</h3>
+            <div class="form-group">
+                <input type="text" id="new-cat-name" placeholder="Category name">
+            </div>
+            <div id="color-picker" class="color-grid"></div>
+            <button id="btn-add-cat" class="btn btn-primary" style="margin-top:14px;width:100%">Add Category</button>
+        </div>
+    </section>
+
+    <!-- CLASSIFY -->
+    <section id="screen-classify" class="screen hidden">
+        <div class="steps-bar">
+            <div class="step active" data-step="1"><span class="step-num">1</span><span class="step-label">Photos</span></div>
+            <div class="step-line"></div>
+            <div class="step" data-step="2"><span class="step-num">2</span><span class="step-label">Events</span></div>
+            <div class="step-line"></div>
+            <div class="step" data-step="3"><span class="step-num">3</span><span class="step-label">Results</span></div>
+        </div>
+
+        <!-- STEP 1: Photos -->
+        <section id="step-photos" class="step-section">
+            <div class="card">
+                <h2>Select your photos</h2>
+                <p class="card-desc">Pick photos from your gallery. Dates are read from EXIF data or filenames.</p>
+                <div class="action-zone" id="photo-zone">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                        <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                    <p>Tap to select photos</p>
+                    <label class="btn btn-secondary">
+                        Browse gallery
+                        <input type="file" id="photo-file-input" accept="image/*" multiple hidden>
+                    </label>
+                </div>
+                <div id="photo-loading" class="loading hidden">
+                    Reading photo dates...<div class="progress-bar"><div class="progress-fill" id="photo-progress"></div></div>
+                </div>
+                <div id="photo-summary" class="summary-box hidden">
+                    <div id="photo-count" class="stat"></div>
+                    <div id="photo-preview-grid" class="mini-grid"></div>
+                </div>
+                <div class="card-actions">
+                    <button id="btn-next-events" class="btn btn-primary" disabled>Continue</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2: Events -->
+        <section id="step-events" class="step-section hidden">
+            <div class="card">
+                <h2>Matching events</h2>
+                <p class="card-desc">Events from your calendar that overlap your photo dates.</p>
+                <div id="events-date-range" class="date-range-badge"></div>
+                <div id="events-summary" class="summary-box hidden">
+                    <div id="events-status" class="stat"></div>
+                    <div id="events-toggle" class="events-toggle hidden">
+                        <button id="btn-select-all" class="btn-link">Select all</button>
+                        <span class="toggle-sep">/</span>
+                        <button id="btn-select-none" class="btn-link">None</button>
+                    </div>
+                    <div id="events-list" class="event-list"></div>
+                </div>
+                <div class="card-actions">
+                    <button id="btn-back-photos" class="btn btn-ghost">Back</button>
+                    <button id="btn-classify" class="btn btn-primary" disabled>Classify</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 3: Results -->
+        <section id="step-results" class="step-section hidden">
+            <div class="results-header">
+                <div class="results-stats" id="results-stats"></div>
+                <div class="results-actions">
+                    <button id="btn-back-events" class="btn btn-ghost">Back</button>
+                    <button id="btn-download-zip" class="btn btn-primary">Download ZIP</button>
+                    <button id="btn-share-zip" class="btn btn-secondary hidden">Share</button>
+                    <button id="btn-start-over" class="btn btn-ghost">Start Over</button>
+                </div>
+            </div>
+            <div id="zip-loading" class="loading hidden">
+                Generating ZIP...<div class="progress-bar"><div class="progress-fill" id="zip-progress"></div></div>
+            </div>
+            <div id="results-grid" class="results-grid"></div>
+        </section>
+    </section>
+</main>
+
+<script src="js/jszip.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

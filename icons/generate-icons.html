@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate PWA Icons</title></head>
+<body>
+<p>Right-click each image below and "Save image as..." to save the PNG icons.</p>
+<h3>192x192</h3>
+<canvas id="c192" width="192" height="192"></canvas>
+<h3>512x512</h3>
+<canvas id="c512" width="512" height="512"></canvas>
+<h3>512x512 maskable</h3>
+<canvas id="cm512" width="512" height="512"></canvas>
+<h3>180x180 apple-touch-icon</h3>
+<canvas id="c180" width="180" height="180"></canvas>
+<script>
+function draw(canvas, maskable) {
+    const s = canvas.width;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#6366F1';
+    if (maskable) {
+        ctx.fillRect(0, 0, s, s);
+    } else {
+        const r = s * 0.18;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, s, s, r);
+        ctx.fill();
+    }
+
+    const cx = s / 2, cy = s / 2;
+    const iconS = s * 0.42;
+
+    ctx.strokeStyle = '#fff';
+    ctx.fillStyle = 'transparent';
+    ctx.lineWidth = s * 0.025;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const x = cx - iconS / 2;
+    const y = cy - iconS / 2 + s * 0.04;
+    const w = iconS;
+    const h = iconS;
+    const cr = s * 0.04;
+
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, cr);
+    ctx.stroke();
+
+    const lineY = y + h * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(x, lineY);
+    ctx.lineTo(x + w, lineY);
+    ctx.stroke();
+
+    const tab1x = x + w * 0.25;
+    const tab2x = x + w * 0.75;
+    const tabTop = y - h * 0.12;
+    const tabBot = y + h * 0.12;
+    ctx.beginPath();
+    ctx.moveTo(tab1x, tabTop);
+    ctx.lineTo(tab1x, tabBot);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tab2x, tabTop);
+    ctx.lineTo(tab2x, tabBot);
+    ctx.stroke();
+
+    const dotR = s * 0.022;
+    const rows = 3, cols = 4;
+    const gx = x + w * 0.18;
+    const gy = lineY + (h - (lineY - y)) * 0.25;
+    const gw = w * 0.64;
+    const gh = (h - (lineY - y)) * 0.55;
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const dx = gx + (gw / (cols - 1)) * c;
+            const dy = gy + (gh / (rows - 1)) * r;
+            ctx.beginPath();
+            ctx.arc(dx, dy, dotR, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+        }
+    }
+}
+
+draw(document.getElementById('c192'), false);
+draw(document.getElementById('c512'), false);
+draw(document.getElementById('cm512'), true);
+draw(document.getElementById('c180'), false);
+
+document.querySelectorAll('canvas').forEach(c => {
+    const img = new Image();
+    img.src = c.toDataURL('image/png');
+    img.style.display = 'block';
+    img.style.marginBottom = '20px';
+    c.parentNode.replaceChild(img, c);
+});
+</script>
+</body>
+</html>
